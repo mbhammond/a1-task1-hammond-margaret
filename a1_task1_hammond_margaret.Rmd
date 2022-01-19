@@ -1,0 +1,33 @@
+---
+title: "Untitled"
+author: "Margaret Hammond"
+date: "1/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(janitor)
+library(here)
+library(readxl)
+library(lubridate)
+```
+
+```{r}
+
+amphib <- read_xlsx(here("data", "sierra_amphibians.xlsx"))
+```
+
+```{r}
+# A graph of total mountain yellow-legged frog (Rana muscosa) count each year across all water bodies, by life stage excluding the ‘EggMass’ level. In other words, you should find the total number of adult, subadult, and tadpole yellow-legged frogs observed in the entire study region by life stage and year, but you will not use the lake ID or amphibian_location in your analyses as additional grouping variables. Hint: Convert the date to a date with the {lubridate} package, then pull just the year using the lubridate::year() function...then you can group by year to get counts. 
+
+amphib_date <- amphib %>% 
+  filter(amphibian_species == "RAMU") %>% 
+  mutate(survey_date = ymd(survey_date)) %>% 
+  mutate(year = year(survey_date)) %>% 
+  group_by(year, amphibian_life_stage) %>% 
+  count()
+```
+
