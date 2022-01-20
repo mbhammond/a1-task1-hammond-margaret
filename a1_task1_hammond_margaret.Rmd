@@ -5,7 +5,7 @@ date: "1/18/2022"
 output: html_document
 ---
 
-```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 library(tidyverse)
@@ -13,10 +13,11 @@ library(janitor)
 library(here)
 library(readxl)
 library(lubridate)
+library(patchwork)
+
 ```
 
 ```{r}
-
 amphib <- read_xlsx(here("data", "sierra_amphibians.xlsx"))
 ```
 
@@ -31,14 +32,16 @@ amphib_date <- amphib %>%
   group_by(year, amphibian_life_stage) %>% 
   count()
 
-ggplot(data = amphib_date, aes(x = year, y = n)) +
+p1 <- ggplot(data = amphib_date, aes(x = year, y = n)) +
   geom_bar(aes(fill = amphibian_life_stage), stat = "identity") +
   theme_minimal() +
   labs(x = "Year",
        y = "Amount of Rana muscosa",
        title = "Rana Muscosa Population Over Time",
-       color = "Life Stage",
+       fill = 'Life Stage',
        caption = "Figure 1. Rana Muscosa (yellow legged frog) population grouped by lifestage over time")
+
+p1
 ```
 
 ```{r}
@@ -52,14 +55,26 @@ amphib_lake <- amphib %>%
   summarize(count = n()) %>% 
   slice_max(count, n = 5) %>% 
   mutate(lake_id = paste('Lake', lake_id, sep = ' ')
-  )
+  ) %>% 
+  mutate(lake = fct_reorder(lake_id, count))
   
-ggplot(data = amphib_lake, aes(x = lake_id, y = count)) +
-  geom_bar(aes(fill = 'bluegreen4'), stat = 'identity') +
+p2 <- ggplot(data = amphib_lake, aes(x = lake, y = count)) +
+  geom_bar(stat = 'identity', fill = 'green3') +
   theme_minimal() +
   labs(x = 'Lake ID',
        y = 'Number of adult and subadult Rana muscosa',
        title = 'Endangered Mountain Yellow Frogs (Rana muscosa) Population by Lake',
        caption = 'Figure 2. Top 5 Lakes in XX area with highest adult and subadult endangered mountain yellow frogs populations')
+
+p2
+```
+
+
+```{r}
+# Combine the two plots with patchwork
+
+p1 / p2
+
+
 ```
 
