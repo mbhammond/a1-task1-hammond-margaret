@@ -25,9 +25,41 @@ amphib <- read_xlsx(here("data", "sierra_amphibians.xlsx"))
 
 amphib_date <- amphib %>% 
   filter(amphibian_species == "RAMU") %>% 
+  filter(amphibian_life_stage != "EggMass") %>% 
   mutate(survey_date = ymd(survey_date)) %>% 
   mutate(year = year(survey_date)) %>% 
   group_by(year, amphibian_life_stage) %>% 
   count()
+
+ggplot(data = amphib_date, aes(x = year, y = n)) +
+  geom_bar(aes(fill = amphibian_life_stage), stat = "identity") +
+  theme_minimal() +
+  labs(x = "Year",
+       y = "Amount of Rana muscosa",
+       title = "Rana Muscosa Population Over Time",
+       color = "Life Stage",
+       caption = "Figure 1. Rana Muscosa (yellow legged frog) population grouped by lifestage over time")
+```
+
+```{r}
+# A column graph containing total counts (over all years of the study) of combined adult and subadult endangered mountain yellow-legged frogs (Rana muscosa) observed in the 5 lakes with the greatest total observed counts. In other words, this graph will have at least 5 columns (OK to have more if there are ties), with Lake ID (these aren’t specified in the dataset for confidentiality) as the categorical label on one axis, and total yellow-legged frog counts (adult + subadult counts) in the dataset on the other axis. Make sure they’re in high-to-low or low-to-high order by total yellow-legged frog counts. You should exclude tadpoles for this graph. Note: Consider reformatting the lake ID from just a number to a label like “Lake 10025”), then use fct_reorder to convert it to an ordered factor.
+
+
+amphib_lake <- amphib %>% 
+  filter(amphibian_species == "RAMU") %>% 
+  filter(amphibian_life_stage %in% c("Adult", "SubAdult")) %>% 
+  group_by(lake_id) %>% 
+  summarize(count = n()) %>% 
+  slice_max(count, n = 5) %>% 
+  mutate(lake_id = paste('Lake', lake_id, sep = ' ')
+  )
+  
+ggplot(data = amphib_lake, aes(x = lake_id, y = count)) +
+  geom_bar(aes(fill = 'bluegreen4'), stat = 'identity') +
+  theme_minimal() +
+  labs(x = 'Lake ID',
+       y = 'Number of adult and subadult Rana muscosa',
+       title = 'Endangered Mountain Yellow Frogs (Rana muscosa) Population by Lake',
+       caption = 'Figure 2. Top 5 Lakes in XX area with highest adult and subadult endangered mountain yellow frogs populations')
 ```
 
