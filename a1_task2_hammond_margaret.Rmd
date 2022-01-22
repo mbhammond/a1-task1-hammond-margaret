@@ -1,0 +1,154 @@
+---
+title: "beepboop"
+author: "Margaret Hammond"
+date: "1/21/2022"
+output: html_document
+---
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(AICcmodavg)
+library(tidyverse)
+library(janitor)
+library(here)
+library(equatiomatic)
+
+```
+
+### Overview
+
+
+```{r}
+# Read the data
+
+calcofi <- read_csv(here("data", "calcofi_seawater_samples.csv"))
+```
+
+```{r}
+# Comparison of two models using an appropriate application of AIC, with the resulting AIC scores and an interpretation of how to choose the best model with this information
+
+calcofi_clean <- calcofi %>% 
+  rename(temp = t_deg_c,
+         phosph = po4u_m,
+         depth = depth_m)
+# Oxygen saturation (o2sat) as a function of water temperature (t_deg_c), salinity (salinity), and phosphate concentration (po4u_m)
+f1 <- o2sat ~ temp + salinity + phosph
+mdl1 <- lm(o2sat ~ temp + salinity + phosph, data = calcofi_clean)
+
+
+# Oxygen saturation (o2sat) as a function of water temp, salinity, phosphate concentration, and depth 
+
+f2 <- o2sat ~ temp + salinity + phosph + depth
+mdl2 <- lm(o2sat ~ temp + salinity + phosph + depth, data = calcofi_clean)
+
+# Compare the AIC
+
+AIC(mdl1, mdl2)
+aictab(list(mdl1, mdl2))
+```
+
+#### AIC Choice
+From the AIC test run, model 2 containing a model of oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth is a better choice than model 1. Model 2 has an AIC value of 616.60 (DO I HAVE TO INLINE CODE?), compared to Model 1's AIC of 619.03. Model 2 is 2 points lower than Model 1, making it a significantly better model. 
+
+```{r}
+# Comparison of the two  models using a 10-fold cross validation, with resulting average RMSE value across all folds, and an interpretation of how to choose the better model with this information
+
+# Creating the 10-fold cross validation
+folds <- 10
+fold_vec <- rep(1:folds, length.out = nrow(calcofi_clean))
+table(fold_vec)
+
+set.seed(41)
+
+calcofi_fold <- calcofi_clean %>% 
+  mutate(group = sample(fold_vec, 
+                        size = n(),
+                        replace = FALSE))
+
+test_df <- calcofi_fold %>% 
+  filter(group == 1)
+
+train_df <- calcofi_fold %>% 
+  filter(group != 1)
+
+# RMSE calculation
+
+calc_rmse <- function(x, y) {
+  rmse_result <- (x - y)^2 %>% 
+    mean() %>% 
+    sqrt()
+  return(rmse_result)
+}
+
+```
+
+
+```{r}
+# Use the training dataset to create 2 linear regression models, based on the formulas above
+
+training_mdl1 <- lm(f1, data = train_df)
+training_mdl2 <- lm(f2, data = train_df)
+
+# Use trained models to predict on test data
+
+predict_test <- test_df %>% 
+  mutate(model1 = predict(training_mdl1,
+                          test_df),
+         model2 = predict(training_mdl2, test_df))
+
+rmse_predict_test <- predict_test %>% 
+  summarize(rmse_mdl1 = calc_rmse(model1, o2sat),
+            rmse_mdl2 = 
+              calc_rmse(model2, o2sat))
+
+rmse_predict_test
+```
+
+```{r}
+# Calculate over all the folds
+
+rmse_df <- data.frame()
+
+for(i in 1:folds) {
+  kfold_test_df <- calcofi_fold %>% 
+    filter(group == i)
+  kfold_train_df <- calcofi_fold %>% 
+    filter(group != i)
+  
+  kfold_mdl1 <- lm(f1, data = kfold_train_df)
+  kfold_mdl2 <- lm(f2, data = kfold_train_df)
+  
+  kfold_pred_df <- kfold_test_df %>% 
+    mutate(mdl1 = predict(kfold_mdl1, kfold_test_df),
+           mdl2 = predict(kfold_mdl2, .))
+  kfold_rmse <- kfold_pred_df %>% 
+    summarize(rmse_mdl1 =
+                calc_rmse(mdl1, o2sat),
+              rmse_mdl2 =
+                calc_rmse(mdl2, o2sat))
+  rmse_df <- bind_rows(rmse_df, 
+                       kfold_rmse)
+}
+
+rmse_df %>% 
+  summarize(mean_rmse_mdl1 =
+              mean(rmse_mdl1),
+            mean_rmse_mdl2 =
+              mean(rmse_mdl2))
+```
+
+```{r}
+# Choosing model 2 because it has the smalled mean RMSE. 
+
+
+final_mdl <- lm(f2, data = calcofi_clean)
+summary(final_mdl)
+```
+
+### Final Model
+
+`r extract_eq(final_mdl, wrap = TRUE, use_coefs = TRUE)`
+
+### Citation
+CalCOFI data are available for use without restriction. Data downloaded from https://calcofi.org/ccdata.html.  Accessed 1/10/2022.
