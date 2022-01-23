@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Mountain Yellow-Legged Frog in Sierra, Nevada"
 author: "Margaret Hammond"
 date: "1/18/2022"
 output: html_document
@@ -17,12 +17,23 @@ library(patchwork)
 
 ```
 
+
+### Overview
+This task is focused on exploring data containing information on amphibian abundance in the Sierra Lakes Inventory Project (SLIP). The SLIP ecosystem contains aquatic communities of >8,000 lentic water bodies in the southern Sierra Nevada. In this task, we are focusing on the mountain yellow-legged frog (*Rana Muscosa*). In part one, a graph is created to visualize the different population size for life stages of mountain yellow-legged frog (*Rana Muscosa*). In opart two, a column graph is created containing total counts of combined adult and subadult mountain yellow-legged frog (*Rana Muscosa*). 
+
+
+#### Read in the Data
 ```{r}
 amphib <- read_xlsx(here("data", "sierra_amphibians.xlsx"))
 ```
 
+
+
+#### Wrangle the Data
+Wrangle the data to create a plot of mountain yellow-legged frog count each year across all waster bodies by life stage, excluding the `EggMass` stage.
+
 ```{r}
-# A graph of total mountain yellow-legged frog (Rana muscosa) count each year across all water bodies, by life stage excluding the ‘EggMass’ level. In other words, you should find the total number of adult, subadult, and tadpole yellow-legged frogs observed in the entire study region by life stage and year, but you will not use the lake ID or amphibian_location in your analyses as additional grouping variables. Hint: Convert the date to a date with the {lubridate} package, then pull just the year using the lubridate::year() function...then you can group by year to get counts. 
+
 
 amphib_date <- amphib %>% 
   filter(amphibian_species == "RAMU") %>% 
@@ -36,12 +47,14 @@ p1 <- ggplot(data = amphib_date, aes(x = year, y = n)) +
   geom_bar(aes(fill = amphibian_life_stage), stat = "identity") +
   theme_minimal() +
   labs(x = "Year",
-       y = "Amount of Rana muscosa",
-       title = "Rana Muscosa Population Over Time",
+       y = "Amount of Frogs",
+       title = "Mountain Yellow-Legged Frog Population Over Time",
        fill = 'Life Stage',
-       caption = "Figure 1. Rana Muscosa (yellow legged frog) population grouped by lifestage over time")
+       caption = "Figure 1. Mountain yellow-legged frog population 
+       in the Sierra, Nevada lakes grouped by lifestage from 1995 - 2002.")
 
 p1
+
 ```
 
 ```{r}
@@ -59,17 +72,20 @@ amphib_lake <- amphib %>%
   mutate(lake = fct_reorder(lake_id, count))
   
 p2 <- ggplot(data = amphib_lake, aes(x = lake, y = count)) +
-  geom_bar(stat = 'identity', fill = 'green3') +
+  geom_bar(stat = 'identity', fill = 'green4') +
   theme_minimal() +
   labs(x = 'Lake ID',
-       y = 'Number of adult and subadult Rana muscosa',
-       title = 'Endangered Mountain Yellow Frogs (Rana muscosa) Population by Lake',
-       caption = 'Figure 2. Top 5 Lakes in XX area with highest adult and subadult endangered mountain yellow frogs populations')
+       y = 'Number of Frogs',
+       title = 'Endangered Mountain Yellow Frogs Population by Lake',
+       caption = 'Figure 2. Top 5 Lakes in Sierra, Nevada with highest 
+       adult and subadult endangered mountain 
+       yellow-legged frogs populations from 1995-2002.')
 
 p2
 ```
 
 
+#### Combine with Patchwork
 ```{r}
 # Combine the two plots with patchwork
 
@@ -78,3 +94,5 @@ p1 / p2
 
 ```
 
+### Citation
+Knapp, R.A., C. Pavelka, E.E. Hegeman, and T.C. Smith. 2020. The Sierra Lakes Inventory Project: Non-Native fish and community composition of lakes and ponds in the Sierra Nevada, California ver 2. Environmental Data Initiative. https://doi.org/10.6073/pasta/d835832d7fd00d9e4466e44eea87fab3
