@@ -184,14 +184,15 @@ library(kableExtra)</code></pre>
 <div id="overview" class="section level3">
 <h3>Overview</h3>
 <p>In this task, I will explore the relationship betwen oxygen saturation of seawater off of California’s coast with several physical and chemical variables. This data comes from a 70+ year hydrographic time-series. I will be comparing two models with AIC and mean RMSE.</p>
-<div id="read-in-the-data" class="section level4">
-<h4>Read in the Data</h4>
+</div>
+<div id="read-in-the-data" class="section level3">
+<h3>Read in the Data</h3>
 <pre class="r"><code># Read the data
 
 calcofi &lt;- read_csv(here(&quot;data&quot;, &quot;calcofi_seawater_samples.csv&quot;))</code></pre>
 </div>
-<div id="compare-the-models" class="section level4">
-<h4>Compare the Models</h4>
+<div id="compare-the-models" class="section level3">
+<h3>Compare the Models</h3>
 <p>Compare the two linear models of oxygen saturation by their AIC values and analyzing the results. Model 1 focuses on oxygen as a function of water temperature (C), salinity (Practical Salinity Scale), and phosphate concentration (micro Moles per Liter).</p>
 <pre class="r"><code># Comparison of two models using an appropriate application of AIC, with the resulting AIC scores and an interpretation of how to choose the best model with this information
 
@@ -199,6 +200,7 @@ calcofi_clean &lt;- calcofi %&gt;%
   rename(temp = t_deg_c,
          phosph = po4u_m,
          depth = depth_m)
+
 # Oxygen saturation (o2sat) as a function of water temperature (t_deg_c), salinity (salinity), and phosphate concentration (po4u_m)
 f1 &lt;- o2sat ~ temp + salinity + phosph
 mdl1 &lt;- lm(o2sat ~ temp + salinity + phosph, data = calcofi_clean)
@@ -212,7 +214,7 @@ mdl2 &lt;- lm(o2sat ~ temp + salinity + phosph + depth, data = calcofi_clean)
 # Compare the AIC
 
 #AIC(mdl1, mdl2)
-#aictab(list(mdl1, mdl2))
+aic_tab &lt;- aictab(list(mdl1, mdl2))
 
 aictab(list(mdl1, mdl2)) %&gt;% 
   kable(col.names = c(&quot;Model Name&quot;,
@@ -322,12 +324,12 @@ Mod1
 </tbody>
 </table>
 </div>
-<div id="aic-choice" class="section level4">
-<h4>AIC Choice</h4>
-<p>From the AIC test run, model 2 containing a model of oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth is a better choice than model 1. Model 2 has an AIC value of 616.60, compared to Model 1’s AIC of 619.03. Model 2 is 2 points lower than Model 1, making it a significantly better model.</p>
+<div id="aic-choice" class="section level3">
+<h3>AIC Choice</h3>
+<p>From the AIC test run, model 2 containing a model of oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth is a better choice than model 1. Model 2 has an AIC value of 616.6, compared to Model 1’s AIC of 619.03. Model 2 is 2.43 smaller than Model 1, making it a significantly better model (&gt; 2 difference).</p>
 </div>
-<div id="k-fold-cross-validation" class="section level4">
-<h4>K-fold cross validation</h4>
+<div id="k-fold-cross-validation" class="section level3">
+<h3>K-fold cross validation</h3>
 <p>Compare the two linear models using a K-fold cross validation, with resulting average RMSE value across all folds.</p>
 <pre class="r"><code># Creating the 10-fold cross validation
 folds &lt;- 10
@@ -357,7 +359,6 @@ calc_rmse &lt;- function(x, y) {
     sqrt()
   return(rmse_result)
 }</code></pre>
-</div>
 <div id="use-the-training-dataset" class="section level4">
 <h4>Use the training dataset</h4>
 <p>USe the training dataset to create 2 linear regression models, based on the formulas above.</p>
@@ -476,15 +477,15 @@ RMSE Model 2
 </tbody>
 </table>
 </div>
-<div id="model-choice-by-average-rmse" class="section level4">
-<h4>Model Choice by Average RMSE</h4>
-<p>Model 2 is chosen as a better overall linear model due to it’s smaller mean RMSE value. Model two is oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth.</p>
+</div>
+<div id="model-choice-by-average-rmse" class="section level3">
+<h3>Model Choice by Average RMSE</h3>
+<p>Model 2 is chosen as a better overall linear model due to it’s smaller mean RMSE value. Model 2 is oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth.</p>
 <pre class="r"><code># Choosing model 2 because it has the smaller mean RMSE. 
 
 
 final_mdl &lt;- lm(f2, data = calcofi_clean)
 sum_mdl1 &lt;- summary(final_mdl)</code></pre>
-</div>
 </div>
 <div id="final-model" class="section level3">
 <h3>Final Model</h3>

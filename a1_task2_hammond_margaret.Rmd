@@ -22,7 +22,7 @@ library(kableExtra)
 In this task, I will explore the relationship betwen oxygen saturation of seawater off of California's coast with several physical and chemical variables. This data comes from a 70+ year hydrographic time-series. I will be comparing two models with AIC and mean RMSE. 
 
 
-#### Read in the Data
+### Read in the Data
 
 ```{r}
 # Read the data
@@ -31,7 +31,7 @@ calcofi <- read_csv(here("data", "calcofi_seawater_samples.csv"))
 ```
 
 
-#### Compare the Models
+### Compare the Models
 Compare the two linear models of oxygen saturation by their AIC values and analyzing the results. Model 1 focuses on oxygen as a function of water temperature (C), salinity (Practical Salinity Scale), and phosphate concentration (micro Moles per Liter).
 
 ```{r}
@@ -41,6 +41,7 @@ calcofi_clean <- calcofi %>%
   rename(temp = t_deg_c,
          phosph = po4u_m,
          depth = depth_m)
+
 # Oxygen saturation (o2sat) as a function of water temperature (t_deg_c), salinity (salinity), and phosphate concentration (po4u_m)
 f1 <- o2sat ~ temp + salinity + phosph
 mdl1 <- lm(o2sat ~ temp + salinity + phosph, data = calcofi_clean)
@@ -54,7 +55,7 @@ mdl2 <- lm(o2sat ~ temp + salinity + phosph + depth, data = calcofi_clean)
 # Compare the AIC
 
 #AIC(mdl1, mdl2)
-#aictab(list(mdl1, mdl2))
+aic_tab <- aictab(list(mdl1, mdl2))
 
 aictab(list(mdl1, mdl2)) %>% 
   kable(col.names = c("Model Name",
@@ -71,12 +72,13 @@ aictab(list(mdl1, mdl2)) %>%
 ```
 
 
-#### AIC Choice
-From the AIC test run, model 2 containing a model of oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth is a better choice than model 1. Model 2 has an AIC value of 616.60, compared to Model 1's AIC of 619.03. Model 2 is 2 points lower than Model 1, making it a significantly better model. 
+### AIC Choice
+From the AIC test run, model 2 containing a model of oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth is a better choice than model 1. Model 2 has an AIC value of `r round(aic_tab$AICc[1], 2)`, compared to Model 1's AIC of `r round(aic_tab$AICc[2], 2)`. Model 2 is `r round(aic_tab$AICc[2], 2) - round(aic_tab$AICc[1], 2)` smaller than Model 1, making it a significantly better model (> 2 difference).
 
 
 ### K-fold cross validation
 Compare the two linear models using a K-fold cross validation, with resulting average RMSE value across all folds. 
+
 ```{r}
 
 
@@ -112,6 +114,7 @@ calc_rmse <- function(x, y) {
 
 #### Use the training dataset
 USe the training dataset to create 2 linear regression models, based on the formulas above.
+
 ```{r}
 # Use the training dataset to create 2 linear regression models, based on the formulas above
 
@@ -144,6 +147,7 @@ rmse_predict_test %>%
 
 #### 10-fold cross validation 
 Create a 10-fold cross validation across all folds to calculate average RMSE.
+
 ```{r}
 # Calculate over all the folds
 
@@ -187,7 +191,7 @@ rmse_sum %>%
 
 
 ### Model Choice by Average RMSE
-Model 2 is chosen as a better overall linear model due to it's smaller mean RMSE value. Model two is oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth. 
+Model 2 is chosen as a better overall linear model due to it's smaller mean RMSE value. Model 2 is oxygen saturation as a function of water temp, salinity, phosphate concentration, and depth. 
 
 ```{r}
 # Choosing model 2 because it has the smaller mean RMSE. 

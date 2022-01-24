@@ -36,14 +36,15 @@ Wrangle the data to create a plot of mountain yellow-legged frog count each year
 
 
 amphib_date <- amphib %>% 
+  drop_na() %>%
   filter(amphibian_species == "RAMU") %>% 
   filter(amphibian_life_stage != "EggMass") %>% 
   mutate(survey_date = ymd(survey_date)) %>% 
   mutate(year = year(survey_date)) %>% 
   group_by(year, amphibian_life_stage) %>% 
-  count()
+  summarize(amphib_sum = sum(amphibian_number))
 
-p1 <- ggplot(data = amphib_date, aes(x = year, y = n)) +
+p1 <- ggplot(data = amphib_date, aes(x = year, y = amphib_sum)) +
   geom_bar(aes(fill = amphibian_life_stage), stat = "identity") +
   theme_minimal() +
   labs(x = "Year",
@@ -65,13 +66,13 @@ amphib_lake <- amphib %>%
   filter(amphibian_species == "RAMU") %>% 
   filter(amphibian_life_stage %in% c("Adult", "SubAdult")) %>% 
   group_by(lake_id) %>% 
-  summarize(count = n()) %>% 
-  slice_max(count, n = 5) %>% 
+  summarize(amphib_n = sum(amphibian_number)) %>% 
+  slice_max(amphib_n, n = 5) %>% 
   mutate(lake_id = paste('Lake', lake_id, sep = ' ')
   ) %>% 
-  mutate(lake = fct_reorder(lake_id, count))
+  mutate(lake = fct_reorder(lake_id, amphib_n))
   
-p2 <- ggplot(data = amphib_lake, aes(x = lake, y = count)) +
+p2 <- ggplot(data = amphib_lake, aes(x = lake, y = amphib_n)) +
   geom_bar(stat = 'identity', fill = 'green4') +
   theme_minimal() +
   labs(x = 'Lake ID',
